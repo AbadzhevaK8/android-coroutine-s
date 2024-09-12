@@ -23,10 +23,10 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(binding.root)
         binding.buttonLoad.setOnClickListener {
-            lifecycleScope.launch {
-                loadData()
-            }
-//            loadWithoutCoroutine()
+//            lifecycleScope.launch {
+//                loadData()
+//            }
+            loadWithoutCoroutine()
         }
     }
 
@@ -39,7 +39,7 @@ class MainActivity : AppCompatActivity() {
         binding.tvLocation.text = city
         val temp = loadTemperature(city)
 
-        binding.tvTemperature.text = temp.toString()
+        binding.tvTemperature.text = "$temp"
         binding.progress.isVisible = false
         binding.buttonLoad.isEnabled = true
         Log.d("MainActivity", "Load finished: $this")
@@ -69,7 +69,7 @@ class MainActivity : AppCompatActivity() {
 
             2 -> {
                 val temp = obj as Int
-                binding.tvTemperature.text = temp.toString()
+                binding.tvTemperature.text = "$temp"
                 binding.progress.isVisible = false
                 binding.buttonLoad.isEnabled = true
                 Log.d("MainActivity", "Load finished: $this")
@@ -83,11 +83,6 @@ class MainActivity : AppCompatActivity() {
         }, 5000)
     }
 
-    private suspend fun loadCity(): String {
-        delay(5000)
-        return "Moscow"
-    }
-
     private fun loadTemperatureWithoutCoroutine(
         city: String,
         callback: (Int) -> Unit,
@@ -98,10 +93,14 @@ class MainActivity : AppCompatActivity() {
                 getString(R.string.loading_temperature_toast, city),
                 Toast.LENGTH_SHORT,
             ).show()
-
         Handler(Looper.getMainLooper()).postDelayed({
             callback.invoke(17)
         }, 5000)
+    }
+
+    private suspend fun loadCity(): String {
+        delay(5000)
+        return "Moscow"
     }
 
     private suspend fun loadTemperature(city: String): Int {
@@ -111,6 +110,7 @@ class MainActivity : AppCompatActivity() {
                 getString(R.string.loading_temperature_toast, city),
                 Toast.LENGTH_SHORT,
             ).show()
+
         delay(5000)
         return 17
     }
