@@ -2,61 +2,32 @@ package com.abadzheva.coroutinestart
 
 import android.util.Log
 import androidx.lifecycle.ViewModel
-import kotlinx.coroutines.CoroutineExceptionHandler
-import kotlinx.coroutines.CoroutineScope
+import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.SupervisorJob
-import kotlinx.coroutines.async
-import kotlinx.coroutines.cancel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
 class MainViewModel : ViewModel() {
-    private val parentJob = SupervisorJob()
-    private val exceptionHandler =
-        CoroutineExceptionHandler { _, throwable ->
-            Log.d(LOG_TAG, "Exception caught: $throwable")
-        }
-    private val coroutineScope =
-        CoroutineScope(
-            Dispatchers.Main +
-                    parentJob +
-                    exceptionHandler,
-        )
 
     fun method() {
-        Log.d(LOG_TAG, "I'm working!!!")
-        val childJob1 =
-            coroutineScope.launch {
-                delay(3000)
-                Log.d(LOG_TAG, "first coroutine finished")
-            }
-        val childJob2 =
-            coroutineScope.launch {
-                delay(2000)
-                Log.d(LOG_TAG, "second coroutine finished")
-            }
-        val childJob3 =
-            coroutineScope.async {
-                async {
-                    delay(1000)
-                    error()
-                    Log.d(LOG_TAG, "third coroutine finished")
+        val job = viewModelScope.launch(Dispatchers.Default) {
+            Log.d(LOG_TAG, "Started")
+            val before = System.currentTimeMillis()
+            var count = 0
+            for (i in 0 until 100_000_000) {
+                for (j in 0 until 100) {
+                    count++
                 }
             }
-        coroutineScope.launch {
-            try {
-                childJob3.await()
-            } catch (e: Exception) {
-            }
+            Log.d(LOG_TAG, "Finished: ${System.currentTimeMillis() - before}")
         }
-    }
-
-    private fun error(): Unit = throw RuntimeException()
-
-    override fun onCleared() {
-        super.onCleared()
-        coroutineScope.cancel()
+        job.invokeOnCompletion {
+            Log.d(LOG_TAG, "Coroutine has finished. $it")
+        }
+        viewModelScope.launch {
+            delay(3000)
+            job.cancel()
+        }
     }
 
     companion object {
